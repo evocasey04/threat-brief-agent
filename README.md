@@ -45,9 +45,19 @@ python -m venv .venv && .venv/Scripts/activate   # macOS/Linux: source .venv/bin
 pip install -r requirements.txt
 cp .env.example .env                             # fill in the values below
 
+python -m agent.check                            # verify the LLM key and model
 python -m agent.main --dry-run                   # prints the brief, sends nothing
 python -m agent.main                             # renders, emails, archives
 ```
+
+### Preflight
+
+Synthesis degrades to a heuristic brief on any failure — right for an unattended
+cron job, but it means a bad key or a retired model id shows up as a duller email
+rather than an error. `python -m agent.check` makes those failures loud: it
+confirms the key is accepted, that the configured model still exists (listing the
+live alternatives if it doesn't), and that a real call returns JSON the renderer
+can parse.
 
 ### Useful flags
 
@@ -122,6 +132,7 @@ ruff check .
 
 ```
 agent/
+  check.py       preflight for the LLM key and model id
   config.py      env-driven settings
   sources.py     RSS fetch + normalise + dedupe
   scoring.py     relevance/recency heuristics
