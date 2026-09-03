@@ -1,0 +1,63 @@
+name: Daily Threat Brief
+
+on:
+  schedule:
+    # 07:00 UTC every day. GitHub's scheduler can lag under load — that's fine here.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build the brief but don't send the email"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-brief
+  cancel-in-progress: false
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build and send the brief
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_MODEL: ${{ vars.GROQ_MODEL }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python -m agent.main --dry-run
+          else
+            python -m agent.main
+          fi
+
+      - name: Commit today's archive entry
+        run: |
+          git config user.name "threat-brief-agent"
+          git config user.email "actions@github.com"
+          git add archive/
+          if git diff --staged --quiet; then
+            echo "No new archive entry."
+          else
+            git commit -m "archive: brief for $(date -u +%Y-%m-%d)"
+            git push
+          fi
