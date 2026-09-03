@@ -76,7 +76,7 @@ Everything is environment variables — nothing secret is ever committed.
 | Variable | Required | Default | Notes |
 | --- | --- | --- | --- |
 | `GROQ_API_KEY` | for LLM mode | — | Free key from [console.groq.com](https://console.groq.com) |
-| `GROQ_MODEL` | no | `llama-3.3-70b-versatile` | Any Groq chat model id |
+| `GROQ_MODEL` | no | `openai/gpt-oss-120b` | Any Groq chat model id — run `agent.check` if it's been retired |
 | `SMTP_HOST` | to send | `smtp.gmail.com` | |
 | `SMTP_PORT` | no | `587` | STARTTLS |
 | `SMTP_USER` | to send | — | Your Gmail address |

@@ -39,7 +39,7 @@ class Feed:
 @dataclass
 class Settings:
     groq_api_key: str = ""
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "openai/gpt-oss-120b"
 
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
@@ -59,7 +59,7 @@ class Settings:
 
         return cls(
             groq_api_key=os.getenv("GROQ_API_KEY", "").strip(),
-            groq_model=os.getenv("GROQ_MODEL", "").strip() or "llama-3.3-70b-versatile",
+            groq_model=os.getenv("GROQ_MODEL", "").strip() or "openai/gpt-oss-120b",
             smtp_host=os.getenv("SMTP_HOST", "").strip() or "smtp.gmail.com",
             smtp_port=_int("SMTP_PORT", 587),
             smtp_user=user,
