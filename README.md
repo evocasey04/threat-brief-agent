@@ -68,6 +68,7 @@ can parse.
 | `--hours 48` | Widen the lookback window (default 24) |
 | `--max-items 30` | How many scored items reach the model (default 25) |
 | `--no-archive` | Don't write a file to `archive/` |
+| `--check-feeds` | Fetch every feed, report entry counts, exit non-zero if one is dead |
 
 ## Configuration
 
@@ -104,7 +105,12 @@ Feeds live in [`feeds.yaml`](feeds.yaml) — add or remove entries, no code chan
 ```
 
 Ships with The Hacker News, BleepingComputer, Krebs on Security, CISA advisories,
-Google Project Zero, Ars Technica and TechCrunch.
+Google Project Zero, Cisco Talos, Unit 42, Ars Technica and TechCrunch.
+
+Feeds rot quietly — `fetch_feed` logs a failure and moves on, because a partial
+brief beats no brief. `python -m agent.main --check-feeds` makes that visible: it
+fetches every source, prints the entry count, and exits non-zero if any returned
+nothing. Worth running when a brief looks thinner than it should.
 
 ## Scheduling it
 

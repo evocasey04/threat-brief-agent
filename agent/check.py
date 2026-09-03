@@ -1,7 +1,7 @@
 """Preflight for the LLM path: `python -m agent.check`.
 
 The synthesis step degrades to heuristics on any failure, which is right for a
-06:00 cron job but means a bad key or a retired model shows up as a slightly
+07:00 cron job but means a bad key or a retired model shows up as a slightly
 duller email rather than an error. This command makes those failures loud.
 
 It verifies, in order:
@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 
 import requests
 
+from . import use_utf8_stdout
 from .config import Settings
 from .sources import Item
 from .summarize import call_groq
@@ -87,6 +88,7 @@ def suggest(models: list[str]) -> list[str]:
 
 
 def main() -> int:
+    use_utf8_stdout()
     settings = Settings.from_env()
 
     print("Groq preflight\n" + "-" * 60)

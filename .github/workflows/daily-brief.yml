@@ -43,6 +43,9 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_FROM: ${{ vars.MAIL_FROM }}
+          BRIEF_HOURS: ${{ vars.BRIEF_HOURS }}
+          BRIEF_MAX_ITEMS: ${{ vars.BRIEF_MAX_ITEMS }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             python -m agent.main --dry-run
@@ -50,7 +53,10 @@ jobs:
             python -m agent.main
           fi
 
+      # The brief is written to archive/ before delivery is attempted, so a
+      # bounced email shouldn't also cost us the day's record.
       - name: Commit today's archive entry
+        if: always()
         run: |
           git config user.name "threat-brief-agent"
           git config user.email "actions@github.com"

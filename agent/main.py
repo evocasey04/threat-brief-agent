@@ -7,11 +7,12 @@ import logging
 import sys
 from datetime import date
 
+from . import use_utf8_stdout
 from .config import ARCHIVE_DIR, Settings, load_feeds
 from .deliver import send_email
 from .render import render_html, render_markdown, render_text, subject_line
 from .scoring import rank
-from .sources import collect
+from .sources import collect, fetch_feed
 from .summarize import build_brief
 
 log = logging.getLogger("agent")
@@ -27,6 +28,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--no-archive", action="store_true", help="don't write to archive/")
     parser.add_argument("--hours", type=int, help="lookback window in hours (default 24)")
     parser.add_argument("--max-items", type=int, help="items sent to the model (default 25)")
+    parser.add_argument(
+        "--check-feeds",
+        action="store_true",
+        help="fetch every feed, report entry counts, exit non-zero if any is dead",
+    )
     parser.add_argument("-v", "--verbose", action="store_true", help="debug logging")
     return parser.parse_args(argv)
 
@@ -39,6 +45,29 @@ def write_archive(markdown: str, today: date) -> str:
     return str(path)
 
 
+def check_feeds(feeds: list) -> int:
+    """Report how many entries each feed yields; non-zero if any yields none.
+
+    `fetch_feed` swallows failures by design -- a partial brief beats no brief --
+    which means a source can rot and only ever show up as a log line nobody
+    reads. This surfaces it. SANS ISC died exactly this way.
+    """
+    dead: list[str] = []
+    for feed in feeds:
+        count = len(fetch_feed(feed))
+        status = "ok  " if count else "DEAD"
+        print(f"[{status}] {count:>3} entries  {feed.name} - {feed.url}")
+        if not count:
+            dead.append(feed.name)
+
+    if dead:
+        print(f"\n{len(dead)} of {len(feeds)} feeds returned nothing: {', '.join(dead)}")
+        return 1
+
+    print(f"\nAll {len(feeds)} feeds are live.")
+    return 0
+
+
 def run(args: argparse.Namespace) -> int:
     settings = Settings.from_env()
     hours = args.hours or settings.hours
@@ -49,6 +78,9 @@ def run(args: argparse.Namespace) -> int:
     if not feeds:
         log.error("no feeds configured in feeds.yaml")
         return 1
+
+    if args.check_feeds:
+        return check_feeds(feeds)
 
     items = collect(feeds, hours)
     shortlist = rank(items, limit=max_items)
@@ -105,6 +137,7 @@ def run(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    use_utf8_stdout()
     args = parse_args(argv)
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,

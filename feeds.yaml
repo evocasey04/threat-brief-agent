@@ -26,8 +26,13 @@
   weight: 1.2
   category: research
 
-- name: SANS Internet Storm Center
-  url: https://isc.sans.edu/rssfeed_full.xml
+- name: Cisco Talos
+  url: https://blog.talosintelligence.com/rss/
+  weight: 1.15
+  category: research
+
+- name: Unit 42
+  url: https://unit42.paloaltonetworks.com/feed/
   weight: 1.15
   category: research
 
