@@ -39,7 +39,7 @@ Full renders live in [`archive/`](archive/).
 ## Quick start
 
 ```bash
-git clone https://github.com/<you>/threat-brief-agent
+git clone https://github.com/evocasey04/threat-brief-agent
 cd threat-brief-agent
 python -m venv .venv && .venv/Scripts/activate   # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
